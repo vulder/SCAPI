@@ -2,6 +2,7 @@ import java.util.List;
 
 import SCAPI.Config;
 import SCAPI.UnitUtil.UnitControl;
+import SCAPI.UnitUtil.UnitDebug;
 import bwapi.*;
 import bwta.BWTA;
 import bwta.BaseLocation;
@@ -75,6 +76,8 @@ public class SommerinoCamperino_old extends DefaultBWListener {
     public void onFrame() {
         // game.setTextSize(10);
         game.drawTextScreen(10, 10, "Playing as " + self.getName() + " - " + self.getRace());
+        
+        UnitDebug.drawUnitDebug(game, self);
     }
 
     public static void main(String[] args) {
