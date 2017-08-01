@@ -1,10 +1,11 @@
-package SCAPI;
+package UnitUtil;
 
 import bwapi.Unit;
 import bwapi.UnitCommand;
 import bwapi.UnitCommandType;
 import bwapi.Game;
 import bwapi.Position;
+import SCAPI.Config;
 import bwapi.Color;
 
 public class UnitControl {

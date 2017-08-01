@@ -1,12 +1,12 @@
 import java.util.List;
 
 import SCAPI.Config;
-import SCAPI.UnitControl;
+import UnitUtil.UnitControl;
 import bwapi.*;
 import bwta.BWTA;
 import bwta.BaseLocation;
 
-public class SommerinoCamperino extends DefaultBWListener {
+public class SommerinoCamperino_old extends DefaultBWListener {
 
     private Mirror mirror = new Mirror();
 
@@ -78,6 +78,6 @@ public class SommerinoCamperino extends DefaultBWListener {
     }
 
     public static void main(String[] args) {
-        new SommerinoCamperino().run();
+        new SommerinoCamperino_old().run();
     }
 }
