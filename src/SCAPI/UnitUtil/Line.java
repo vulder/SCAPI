@@ -1,4 +1,4 @@
-package UnitUtil;
+package SCAPI.UnitUtil;
 import java.util.List;
 
 import bwapi.Position;

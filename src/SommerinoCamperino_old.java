@@ -1,7 +1,7 @@
 import java.util.List;
 
 import SCAPI.Config;
-import UnitUtil.UnitControl;
+import SCAPI.UnitUtil.UnitControl;
 import bwapi.*;
 import bwta.BWTA;
 import bwta.BaseLocation;

@@ -1,4 +1,4 @@
-package UnitUtil;
+package SCAPI.UnitUtil;
 
 import bwapi.Unit;
 import bwapi.UnitCommand;

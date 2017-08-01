@@ -2,8 +2,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import UnitUtil.Line;
-import UnitUtil.UnitControl;
+import SCAPI.UnitUtil.Line;
+import SCAPI.UnitUtil.UnitControl;
 import bwapi.*;
 import bwta.BWTA;
 import bwta.BaseLocation;
