@@ -1,4 +1,5 @@
 package SCAPI.UnitUtil;
+import java.util.LinkedList;
 import java.util.List;
 
 import bwapi.Game;
@@ -17,16 +18,11 @@ public class Line {
 	}
 	
 	public static Line fromPoints(Vector from, Vector to) {
-		Position tPos = to.toPosition();
-		Position fPos = from.toPosition();
-
-		double a =
-				(tPos.getY() - fPos.getY()) /
-				(tPos.getX() - fPos.getX());
-		double b =
-				to.toPosition().getY() - a * to.toPosition().getX();
-				
-		return new Line(a, b);
+	    List<Position> obs = new LinkedList<Position>();
+	    
+	    obs.add(from.toPosition());
+	    obs.add(to.toPosition());
+	    return Line.fromObservations(obs);
 	}
 
 	public static Line fromObservations(List<Position> observations) {

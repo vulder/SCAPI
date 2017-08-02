@@ -134,10 +134,10 @@ public class Vector {
      * @param state
      * @param c
      */
-    public void draw(Game state, bwapi.Color c) {
+    public void draw(Game state, bwapi.Color c, String ctx) {
 	state.drawLineMap(origin, pos, c);
 	state.drawCircleMap(pos, 2, c);
-	state.drawTextMap(toPosition(), "" + getAngle());
+	state.drawTextMap(toPosition(), ctx +" (" + getAngle() + ")");
     }
 
     public String toString() {

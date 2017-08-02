@@ -134,7 +134,7 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 
 	    int radius = Math.max(u0.getType().height(), u0.getType().width());
 	    ab = new Vector(a.toPosition(), a.add(ab).toPosition());
-	    ab = ab.scale(1.5);
+	    ab = ab.scale(2);
 
 	    if (minDistance < distance)
 		requiredActions = true;
@@ -163,7 +163,13 @@ public class SommerinoCamperino_New extends DefaultBWListener {
     private Line unitAlignment = null;
     private Line wantAlignment = null;
 
-    private boolean unitsAreAligned(Game state, List<Unit> units,
+    private boolean unitsAligned(Line ua, Line wa) {
+	double slopeDelta = Math.abs(wa.getSlope() - ua.getSlope());
+	double interceptDelta = Math.abs(wa.getIntercept() - ua.getIntercept());
+	return slopeDelta < 0.6 && interceptDelta < 40;
+    }
+
+    private boolean refreshAlignment(Game state, List<Unit> units,
 	    Position pos) {
 	if (units.size() < 2)
 	    return true;
@@ -190,16 +196,16 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	else
 	    dir = new Vector(mid.toPosition(), mid.add(64, 64).toPosition());
 
-	dir.draw(state, Color.Purple);
 	Vector v1 = dir.rotate(90);
 	Vector v2 = dir.rotate(270);
 
 	wantAlignment = Line.fromPoints(v1, v2);
+	wantAlignment = Line.fromPoints(v1, v2);
 	wantAlignment.draw(state, u0.getX(), u1.getX(), bwapi.Color.Green);
 	unitAlignment.draw(state, u0.getX(), u1.getX(), bwapi.Color.Yellow);
 
-	double slopeDelta = Math.abs(
-		wantAlignment.getSlope() - unitAlignment.getSlope());
+	double slopeDelta = Math
+		.abs(wantAlignment.getSlope() - unitAlignment.getSlope());
 	double interceptDelta = Math.abs(
 		wantAlignment.getIntercept() - unitAlignment.getIntercept());
 	state.drawTextScreen(10, 50,
@@ -221,13 +227,14 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	    double a_f = (-1) * a_g;
 	    double b_f = u_pos.getY() - a_f * u_pos.getX();
 
+	    if (a_f == a_g)
+		continue;
 	    double x = (b_f - b_g) / (a_g - a_f);
 
 	    Position to = wantAlignment.at(x);
-	    Vector v = new Vector(to);
-	    v.draw(state, Color.Purple);
-	    u.move(to);
-	    
+	    Vector v = new Vector(u_pos, to);
+	    v.draw(state, Color.Red, "align");
+	    u.move(v.toPosition());
 	}
     }
 
@@ -288,27 +295,32 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	    Player enemy = game.enemy();
 	    drawEnemies(game, enemy);
 	    drawOrders(game, units);
-	    
+
 	    switch (state) {
 	    case INIT:
 		Position pos = null;
 		if (enemyLoc != null)
 		    pos = enemyLoc.getPosition();
 
-//		if (!unitsAreAligned(game, units, pos))
-//		    alignUnits(game, units);
-//		else {
-		    if (!spreadUnits(game, units, 30)) {
-//			state = State.NORMAL;
+		refreshAlignment(game, units, pos);
+
+		if (!spreadUnits(game, units, 15)) {
+		    if (!unitsAligned(unitAlignment, wantAlignment)) {
+			alignUnits(game, units);
+
+		    } else {
+			state = State.NORMAL;
 		    }
-//		}
+		}
 		break;
 	    case NORMAL:
 		attackEverythingInSight();
 		attackMoveTo(game, units, new Position(0, 64));
 		break;
 	    }
-	} catch (Throwable t) {
+	} catch (
+
+	Throwable t) {
 	    game.sendText("Exception caught");
 	    t.printStackTrace();
 	}
