@@ -6,9 +6,25 @@ import bwapi.Unit;
 
 public class UnitDebug {
 
+    /**
+     * Draws unit debug data to the screen.
+     * 
+     * @param game reference
+     * @param self reference
+     */
     public static void drawUnitDebug(Game game, Player self) {
+        drawUnitDebug(game, self, 0);
+    }
+
+    /**
+     * Draws unit debug data to the screen.
+     * 
+     * @param game reference
+     * @param self reference
+     * @param yOffset
+     */
+    public static void drawUnitDebug(Game game, Player self, int yOffset) {
         // Drawing own Units
-        int yOffset = 0;
 
         for (Unit myUnit : self.getUnits()) {
             game.drawTextScreen(10, 20 + yOffset, unitToFancyString(myUnit));
