@@ -24,13 +24,20 @@ public class SommerinoCamperino_New extends DefaultBWListener {
     }
 
     private State state = State.INIT;
-    private HashMap<Unit, State> unitStates = new HashMap<Unit, State>();
+
+    enum UnitState {
+	IDLE, KITING
+    }
+
+    private HashMap<Unit, UnitState> unitStates = new HashMap<Unit, UnitState>();
 
     public void run() {
 	mirror.getModule().setEventListener(this);
 	mirror.startGame();
     }
 
+    private Position avgPos;
+    
     @Override
     public void onStart() {
 	state = State.INIT;
@@ -39,13 +46,17 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	BWTA.readMap();
 	BWTA.analyze();
 
-	List<BaseLocation> locs = BWTA.getStartLocations();
 	playerLoc = BWTA.getStartLocation(self);
 	for (BaseLocation loc : BWTA.getStartLocations()) {
 	    if (loc != playerLoc) {
 		enemyLoc = loc;
 	    }
 	}
+
+	for (Unit u : self.getUnits()) {
+	    unitStates.put(u, UnitState.IDLE);
+	}
+	avgPos = avgPoint(asPositions(self.getUnits()));
     }
 
     protected void attackEverythingInSight() {
@@ -99,7 +110,8 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	    if (myUnit.getLastCommand()
 		    .getUnitCommandType() == UnitCommandType.Attack_Unit)
 		continue;
-	    myUnit.attack(eu);
+	    if (unitStates.get(myUnit) == UnitState.KITING)
+		myUnit.attack(eu);
 	}
     }
 
@@ -159,36 +171,26 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	return requiredActions;
     }
 
-    private Line unitAlignment = null;
     private Line wantAlignment = null;
 
-    private boolean unitsAligned(Line ua, Line wa) {
+    private boolean unitsAligned(Line wa, List<Unit> units) {
+	List<Position> pos = asPositions(units);
+	Line ua = Line.fromObservations(pos);
 	double slopeDelta = Math.abs(wa.getSlope() - ua.getSlope());
 	double interceptDelta = Math.abs(wa.getIntercept() - ua.getIntercept());
 	return slopeDelta < 0.6 && interceptDelta < 40;
     }
 
-    private boolean refreshAlignment(Game state, List<Unit> units,
+    private void refreshAlignment(Game state, List<Unit> units,
 	    Position pos) {
 	if (units.size() < 2)
-	    return true;
+	    return;
 
-	List<Position> positions = new LinkedList<Position>();
-	for (Unit u : units) {
-	    positions.add(u.getPosition());
-	}
+	
+	List<Position> positions = asPositions(units);
+	Vector mid = new Vector(avgPoint(positions));
 
-	unitAlignment = Line.fromObservations(positions);
-
-	Unit u0 = units.get(0);
-	Unit u1 = units.get(units.size() - 1);
-
-	Position p0 = unitAlignment.at(u0.getX());
-	Position p1 = unitAlignment.at(u1.getX());
-
-	Vector align = new Vector(p0, p1);
-	Vector mid = align.scale(0.5);
-
+	mid.draw(state,  Color.Brown, "mid");
 	Vector dir;
 	if (pos != null)
 	    dir = new Vector(mid.toPosition(), pos);
@@ -196,24 +198,17 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	    dir = new Vector(mid.toPosition(), mid.add(0, 64).toPosition());
 
 	Vector v1 = dir.rotate(90);
+	v1.draw(state,  Color.Brown, "v1");
 	Vector v2 = dir.rotate(270);
+	v2.draw(state,  Color.Brown, "v2");
 
 	wantAlignment = Line.fromPoints(v1, v2);
 	wantAlignment = Line.fromPoints(v1, v2);
-	wantAlignment.draw(state, u0.getX(), u1.getX(), bwapi.Color.Green);
-	unitAlignment.draw(state, u0.getX(), u1.getX(), bwapi.Color.Yellow);
-
-	double slopeDelta = Math
-		.abs(wantAlignment.getSlope() - unitAlignment.getSlope());
-	double interceptDelta = Math.abs(
-		wantAlignment.getIntercept() - unitAlignment.getIntercept());
-	state.drawTextScreen(10, 50,
-		String.format("Slope-Delta: %f", slopeDelta));
-	return slopeDelta < 0.5 && interceptDelta < 6;
+	wantAlignment.draw(state, v1.toPosition().getX(), v2.toPosition().getX(), bwapi.Color.Green);
     }
 
     private void alignUnits(Game state, List<Unit> units) {
-	if (unitAlignment == null || wantAlignment == null)
+	if (wantAlignment == null)
 	    return;
 	for (Unit u : units) {
 	    if (!u.isIdle())
@@ -279,31 +274,49 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	    int distance) {
 	int i = 0;
 	Position p = null;
+	Line align = to;
 	for (Unit u : units) {
 	    if (!u.isIdle())
 		continue;
 	    if (p == null)
 		p = u.getPosition();
+	    
+//	    if (i % 5 == 0) {
+//		i = 0;
+//		align = new Line(align.getSlope(), align.getIntercept() + 10);
+//	    }
+
 	    UnitType ty = u.getType();
 	    int radius = Math.max(ty.height(), ty.width());
-	    Position np = to.at(p.getX() + i * (distance + radius));
-	    
+	    Position np = align.at(p.getX() + i * (distance + radius));
+
 	    u.move(np);
 	    i++;
 	}
     }
+    
+    private boolean containsEnemies(List<Unit> units) {
+	for (Unit u : units) {
+	    if (u.getPlayer() != self)
+		return true;
+	}
+	return false;
+    }
 
-    private List<Unit> getInWeaponRange(Unit u, List<Unit> units) {
+    private List<Unit> getAlmostInWeaponRange(Unit u, List<Unit> units) {
 	List<Unit> us = new LinkedList<Unit>();
-	
+
 	for (Unit e : units) {
-	    if (e.isInWeaponRange(u)) {
+	    UnitType ety = e.getType();
+	    int range = ety.groundWeapon().maxRange() + 32;
+	    List<Unit> uir = u.getUnitsInRadius(range);
+	    if (uir.size() != 0 && containsEnemies(uir)) {
 		us.add(e);
 	    }
 	}
 	return us;
     }
-    
+
     private List<Position> asPositions(List<Unit> units) {
 	List<Position> pos = new LinkedList<Position>();
 	for (Unit u : units) {
@@ -311,35 +324,35 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 	}
 	return pos;
     }
-    
+
     private Position avgPoint(List<Position> positions) {
 	int sum_x = 0;
 	int sum_y = 0;
-	
+
 	for (Position p : positions) {
 	    sum_x += p.getX();
 	    sum_y += p.getY();
 	}
 	return new Position(sum_x / positions.size(), sum_y / positions.size());
     }
-    
+
     private boolean canKite(Unit u, List<Unit> uir) {
 	if (uir.isEmpty())
 	    return false;
-	
+
 	UnitType ty = u.getType();
 	double uspd = ty.topSpeed();
-	
+
 	boolean canKite = false;
 	for (Unit eu : uir) {
 	    UnitType ety = eu.getType();
 	    double euspd = eu.getType().topSpeed();
-	    double urng = (eu.isFlying()) ? ty.airWeapon().maxRange() :
-					    ty.groundWeapon().maxRange();
-	    double eurng = (u.isFlying()) ? ety.airWeapon().maxRange() :
-					    ety.groundWeapon().maxRange();
-	    
-	    canKite = canKite || (uspd >= euspd) && (urng > eurng);	    
+	    double urng = (eu.isFlying()) ? ty.airWeapon().maxRange()
+		    : ty.groundWeapon().maxRange();
+	    double eurng = (u.isFlying()) ? ety.airWeapon().maxRange()
+		    : ety.groundWeapon().maxRange();
+
+	    canKite = canKite || (uspd >= euspd) && (urng > eurng);
 	}
 	return canKite;
     }
@@ -355,15 +368,29 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 		}
 	    });
 
-	    List<Unit> uir = getInWeaponRange(u, enemies);
+	    List<Unit> uir = getAlmostInWeaponRange(u, enemies);
 	    Color kiteCandidate = Color.Blue;
 	    if (canKite(u, uir)) {
 		kiteCandidate = Color.Orange;
 		Position dangerZone = avgPoint(asPositions(uir));
 		game.drawCircleMap(dangerZone, 15, Color.Teal);
+		unitStates.put(u, UnitState.KITING);
+		Vector dir = new Vector(dangerZone, u.getPosition());
+		Vector uv = new Vector(u.getPosition());
+		Vector runAway = new Vector(uv, uv.add(dir));
+				
+		u.move(runAway.toPosition());
 	    }
 	    for (Unit kc : uir) {
 		game.drawCircleMap(kc.getPosition(), 10, kiteCandidate);
+	    }
+	}
+    }
+    
+    private void updateUnitStates() {
+	for (Unit u : self.getUnits()) {
+	    if (u.isIdle()) {
+		unitStates.put(u, UnitState.IDLE);
 	    }
 	}
     }
@@ -386,7 +413,8 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 		    return d1 - d2;
 		}
 	    };
-
+	    
+	    updateUnitStates();
 	    List<Unit> enemy_units = enemy.getUnits();
 
 	    drawEnemies(game, enemy);
@@ -394,12 +422,13 @@ public class SommerinoCamperino_New extends DefaultBWListener {
 
 	    switch (state) {
 	    case INIT:
-		refreshAlignment(game, units, enemyLoc.getPosition());
-		alignUnitsTo(game, wantAlignment, units, 10);
-		if (unitsAligned(unitAlignment, wantAlignment)) {
-		    state = State.NORMAL;
-		}
-		break;
+//		Vector avgPosV = new Vector(avgPos);
+//		refreshAlignment(game, units, new Vector(avgPosV, avgPosV.add(0, 24)).toPosition());
+//		alignUnitsTo(game, wantAlignment, units, 10);
+//		if (unitsAligned(wantAlignment, units)) {
+//		    state = State.NORMAL;
+//		}
+//		break;
 	    case NORMAL:
 		maybeKite(game, units, enemy.getUnits());
 		attackEverythingInSight();
