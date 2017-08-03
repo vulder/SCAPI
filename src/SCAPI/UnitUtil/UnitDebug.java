@@ -2,8 +2,10 @@ package SCAPI.UnitUtil;
 
 import bwapi.Game;
 import bwapi.Player;
+import bwapi.Position;
 import bwapi.Unit;
 import bwapi.UnitCommand;
+import bwapi.UnitCommandType;
 
 public class UnitDebug {
 
@@ -31,6 +33,50 @@ public class UnitDebug {
             game.drawTextScreen(10, 20 + yOffset, unitToFancyString(myUnit));
             yOffset += 10;
         }
+    }
+    
+    /**
+     * Draw debug infos for all units.
+     * 
+     * @param game
+     * @param withInfo
+     *            Draw with info text
+     */
+    public static void drawUnitHelpAll(Game game, boolean withInfo) {
+        for (Unit myUnit : game.self().getUnits()) {
+            drawUnitHelp(game, myUnit, withInfo);
+        }
+    }
+    
+    /**
+     * Draw debug infos for unit.
+     * 
+     * @param game
+     * @param unit
+     * @param withInfo
+     *            Draw with info text
+     */
+    public static void drawUnitHelp(Game game, Unit unit, boolean withInfo) {
+        // draw text
+        if (withInfo) {
+            int x = unit.getX() - 10;
+            int y = unit.getY() + 5;
+
+            game.drawTextMap(x, y, getUnitInfo(unit));
+        }
+
+        // draw lines
+        if (unit.isIdle())
+            return;
+
+        Position pos = unit.getOrderTargetPosition();
+        bwapi.Color c = bwapi.Color.Green;
+
+        UnitCommandType ty = unit.getLastCommand().getUnitCommandType();
+        if (ty == UnitCommandType.Attack_Move || ty == UnitCommandType.Attack_Unit)
+            c = bwapi.Color.Red;
+
+        game.drawLineMap(unit.getPosition(), pos, c);
     }
 
     /**
@@ -95,6 +141,16 @@ public class UnitDebug {
         
         SB.append(String.format("ID: %2d doing: %s", unit.getID(), cmdString));
         
+        return SB.toString();
+    }
+    
+    private static String getUnitInfo(Unit unit) {
+        StringBuilder SB = new StringBuilder();
+
+        SB.append(String.format("ID%2d (Health %3d/%3d)\n", unit.getID(), unit.getHitPoints(),
+                unit.getType().maxHitPoints()));
+        SB.append(String.format("CMD %s\n", unit.getLastCommand().getUnitCommandType()));
+
         return SB.toString();
     }
 }

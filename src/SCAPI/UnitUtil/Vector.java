@@ -35,10 +35,10 @@ public class Vector {
     }
 
     public double length() {
-	Vector v = toOrigin();
-	Position p = v.toPosition();
+        Vector v = toOrigin();
+        Position p = v.toPosition();
 
-	return Math.sqrt(p.getX() ^ 2 + p.getY() ^ 2);
+        return Math.sqrt(Math.pow(p.getX(), 2) + Math.pow(p.getY(), 2));
     }
 
     public Vector normalized() {
