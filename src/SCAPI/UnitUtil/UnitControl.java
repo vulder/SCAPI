@@ -5,6 +5,9 @@ import bwapi.UnitCommand;
 import bwapi.UnitCommandType;
 import bwapi.Game;
 import bwapi.Position;
+
+import java.util.List;
+
 import SCAPI.Config;
 import bwapi.Color;
 
@@ -79,5 +82,41 @@ public class UnitControl {
         }
 
         return false;
+    }
+    
+    /**
+     * Calculate the center position to all given units.
+     * 
+     * @param units
+     * @return
+     */
+    public static Position calcCenter(List<Unit> units) {
+        if (units.isEmpty()) {
+            return new Position(0, 0);
+        }
+        if (units.size() == 1) {
+            return units.get(0).getPosition();
+        }
+
+        int minX = units.get(0).getX(), maxX = units.get(0).getX();
+        int minY = units.get(0).getY(), maxY = units.get(0).getY();
+
+        for (Unit unit : units) {
+            Position p = unit.getPosition();
+            if (p.getX() < minX) {
+                minX = p.getX();
+            }
+            if (p.getX() > maxX) {
+                maxX = p.getX();
+            }
+            if (p.getY() < minY) {
+                minY = p.getY();
+            }
+            if (p.getY() > maxY) {
+                maxY = p.getY();
+            }
+        }
+
+        return new Position((minX + maxX) / 2, (minY + maxY) / 2);
     }
 }
