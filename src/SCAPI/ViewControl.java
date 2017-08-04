@@ -7,7 +7,7 @@ import SCAPI.UnitUtil.UnitControl;
 public class ViewControl {
 
     public static void screenAutoFollow(Game game) {
-        Position center = UnitControl.calcCenter(game.self().getUnits());
+        Position center = UnitControl.calcCenter(game.getAllUnits());
 
         game.setScreenPosition(center.getX() - 300, center.getY() - 200);
     }
