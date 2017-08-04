@@ -1,5 +1,7 @@
 package SCAPI.UnitUtil;
 
+import java.util.List;
+
 import bwapi.Game;
 import bwapi.Player;
 import bwapi.Position;
@@ -104,6 +106,30 @@ public class UnitDebug {
         }
         
     }
+    
+	public static void drawEnemies(Game state, Player enemy) {
+		for (Unit e : enemy.getUnits()) {
+			if (!e.isVisible())
+				continue;
+			state.drawBoxMap(e.getX() - 2, e.getY() - 2, e.getX() + 2, e.getY() + 2, bwapi.Color.Red);
+		}
+	}
+
+	public static void drawOrders(Game state, List<Unit> units) {
+		for (Unit u : units) {
+			if (u.isIdle())
+				continue;
+
+			Position pos = u.getOrderTargetPosition();
+			bwapi.Color c = bwapi.Color.Green;
+
+			UnitCommandType ty = u.getLastCommand().getUnitCommandType();
+			if (ty == UnitCommandType.Attack_Move || ty == UnitCommandType.Attack_Unit)
+				c = bwapi.Color.Red;
+
+			state.drawLineMap(u.getPosition(), pos, c);
+		}
+	}
 
     private static String unitToFancyString(Unit unit) {
         StringBuilder SB = new StringBuilder();

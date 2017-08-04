@@ -1,7 +1,6 @@
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +11,7 @@ import bwta.BWTA;
 import bwta.BaseLocation;
 
 public class SommerinoCamperino_New extends DefaultBWListener {
-
+	
     private Mirror mirror = new Mirror();
     private Game game;
     private Player self;
