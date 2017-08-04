@@ -84,6 +84,9 @@ public class Squad {
 	
 	public void move(Position target) {
 		Vector targetDir = getTargetDirection(target);
+		if (UnitControl.spreadUnits(state, members, 35))
+		    return;
+
 		sort(target);
 		for (Unit member : members) {
 			Position memberTarget = getTargetPosition(member, targetDir);
@@ -93,8 +96,10 @@ public class Squad {
 	
 	public void attack(Position target) {
 		Vector targetDir = getTargetDirection(target);
+		if (UnitControl.spreadUnits(state, members, 35))
+		    return;
+		    
 		sort(target);
-		
 		for (Unit member : members) {
 			Position memberTarget = getTargetPosition(member, targetDir);
 			member.attack(memberTarget);

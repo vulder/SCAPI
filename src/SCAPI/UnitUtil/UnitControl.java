@@ -56,6 +56,68 @@ public class UnitControl {
     }
 
     /**
+     * @param state
+     * @param units
+     * @param distance
+     * @return
+     */
+    public static boolean spreadUnits(Game state, List<Unit> units, int distance) {
+	if (units.size() < 2)
+	    return true;
+
+	List<Position> wantPositions = new LinkedList<Position>();
+	boolean requiredActions = false;
+
+	for (int i = 0; i < units.size() - 1; i++) {
+	    Unit u0 = units.get(i);
+	    Unit closest = u0;
+	    int minDistance = distance;
+	    for (int j = i + 1; j < units.size(); j++) {
+		Unit u1 = units.get(j);
+
+		int curDistance = u0.getDistance(u1);
+		if (curDistance >= distance)
+		    continue;
+
+		if (minDistance >= curDistance) {
+		    minDistance = curDistance;
+		    closest = u1;
+		}
+	    }
+
+	    Vector a = new Vector(u0.getPosition());
+	    Vector b = new Vector(closest.getPosition());
+	    Vector ab = new Vector(b, a);
+
+	    int radius = Math.max(u0.getType().height(), u0.getType().width());
+	    ab = new Vector(a.toPosition(), a.add(ab).toPosition());
+	    ab = ab.scale(2);
+
+	    if (minDistance < distance)
+		requiredActions = true;
+
+	    int tries = 0;
+	    while (tries < 5) {
+		List<Unit> uir = state.getUnitsInRadius(ab.toPosition(),
+			radius);
+		if (uir.size() == 0) {
+		    if (u0.isIdle()) {
+			wantPositions.add(ab.toPosition());
+			u0.move(ab.toPosition());
+		    }
+		    break;
+		}
+		ab = ab.rotate(64);
+		tries++;
+	    }
+	}
+	for (Position pos : wantPositions) {
+	    state.drawCircleMap(pos, 2, bwapi.Color.White);
+	}
+	return requiredActions;
+    }
+    
+    /**
      * Find the unit that is closest to the given unit.
      * 
      * @param u
