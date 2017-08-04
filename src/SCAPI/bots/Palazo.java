@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import SCAPI.ViewControl;
 import SCAPI.UnitUtil.UnitControl;
 import SCAPI.UnitUtil.UnitDebug;
 import SCAPI.UnitUtil.Vector;
@@ -139,6 +140,8 @@ public class Palazo extends DefaultBWListener {
     @Override
     public void onFrame() {
 	try {
+	    ViewControl.screenAutoFollow(game);
+	    
 	    List<Unit> units = self.getUnits();
 	    List<Unit> enemies = new LinkedList<Unit>();
 	    for (Player enemy : game.enemies()) {
