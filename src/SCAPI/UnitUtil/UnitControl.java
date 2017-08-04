@@ -127,8 +127,8 @@ public class UnitControl {
     public static Unit closestTo(Unit u, List<Unit> units) {
     	assert units != null;
     	assert !units.isEmpty();
-
-    	Unit closest = units.iterator().next();
+    	
+      	Unit closest = units.iterator().next();
     	int minDistance = u.getDistance(closest);
     	for (Unit c : units) {
     		int distance = u.getDistance(c);

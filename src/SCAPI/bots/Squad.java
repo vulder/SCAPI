@@ -82,7 +82,7 @@ public class Squad {
 		return new Vector(focalPosition(), s.focalPosition());
 	}
 	
-	public void move(Position target) {
+	public void move(Position target, List<Squad> squads) {
 		Vector targetDir = getTargetDirection(target);
 		if (UnitControl.spreadUnits(state, members, 35))
 		    return;
@@ -94,7 +94,7 @@ public class Squad {
 		}
 	}
 	
-	public void attack(Position target) {
+	public void attack(Position target, List<Squad> squads) {
 		Vector targetDir = getTargetDirection(target);
 		if (UnitControl.spreadUnits(state, members, 35))
 		    return;
